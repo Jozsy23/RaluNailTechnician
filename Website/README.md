@@ -1,2 +1,0 @@
-# RaluNailTechnician
-# RaluNailTechnician
