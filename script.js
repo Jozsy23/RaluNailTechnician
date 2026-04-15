@@ -30,7 +30,62 @@
     });
   }
 
-  var revealTargets = document.querySelectorAll(".section, .card, .tile");
+  var instaGrid = document.getElementById("insta-grid");
+  if (instaGrid) {
+    var endpoint = (instaGrid.dataset.feedEndpoint || "").trim();
+    var profileUrl = instaGrid.dataset.profileUrl || "https://www.instagram.com/";
+    var maxPosts = 60;
+
+    function fetchInstagramPages(url, collected) {
+      return fetch(url)
+        .then(function (response) {
+          if (!response.ok) throw new Error("Instagram feed request failed.");
+          return response.json();
+        })
+        .then(function (payload) {
+          var batch = Array.isArray(payload.data) ? payload.data : [];
+          var merged = collected.concat(batch);
+          if (merged.length >= maxPosts) return merged.slice(0, maxPosts);
+
+          var nextUrl = payload.paging && payload.paging.next;
+          if (!nextUrl) return merged;
+
+          return fetchInstagramPages(nextUrl, merged);
+        });
+    }
+
+    if (endpoint && endpoint.indexOf("PASTE_INSTAGRAM_ACCESS_TOKEN") === -1) {
+      fetchInstagramPages(endpoint, [])
+        .then(function (items) {
+          if (!items.length) return;
+
+          instaGrid.innerHTML = "";
+          items.forEach(function (item, index) {
+            var imageUrl = item.media_type === "VIDEO" ? item.thumbnail_url : item.media_url;
+            if (!imageUrl) return;
+
+            var link = document.createElement("a");
+            link.className = "insta-card reveal is-visible";
+            link.href = item.permalink || profileUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+
+            var image = document.createElement("img");
+            image.src = imageUrl;
+            image.loading = "lazy";
+            image.alt = item.caption ? item.caption.slice(0, 110) : "Postare Instagram " + String(index + 1);
+
+            link.appendChild(image);
+            instaGrid.appendChild(link);
+          });
+        })
+        .catch(function () {
+          // Keep fallback card when the feed is unavailable.
+        });
+    }
+  }
+
+  var revealTargets = document.querySelectorAll(".section, .card, .insta-card");
   revealTargets.forEach(function (el) {
     el.classList.add("reveal");
   });
