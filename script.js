@@ -4,6 +4,8 @@
 
   var menuToggle = document.querySelector(".menu-toggle");
   var mainNav = document.getElementById("main-nav");
+  var brandLink = document.querySelector(".brand");
+  var topAnchor = document.getElementById("top");
 
   if (menuToggle && mainNav) {
     menuToggle.addEventListener("click", function () {
@@ -16,6 +18,27 @@
         mainNav.classList.remove("is-open");
         menuToggle.setAttribute("aria-expanded", "false");
       });
+    });
+  }
+
+  if (brandLink) {
+    brandLink.addEventListener("click", function (event) {
+      event.preventDefault();
+      if (mainNav && menuToggle) {
+        mainNav.classList.remove("is-open");
+        menuToggle.setAttribute("aria-expanded", "false");
+      }
+
+      if (topAnchor && typeof topAnchor.scrollIntoView === "function") {
+        topAnchor.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Fallback for mobile browsers that ignore smooth scroll options.
+      setTimeout(function () {
+        if (window.scrollY > 0) window.scrollTo(0, 0);
+      }, 420);
     });
   }
 
